@@ -2,12 +2,14 @@
 
 namespace Rule\RuleMailer\Model\Api;
 
-use Rule\ApiWrapper\ApiFactory;
-use Rule\ApiWrapper\Api\Api;
 use Magento\Framework\Mail\Address;
-use Magento\Framework\Mail\MessageInterface;
-use Magento\Framework\Mail\MailMessageInterface;
+use Magento\Framework\Mail\EmailMessage;
 use Magento\Framework\Mail\EmailMessageInterface;
+use Magento\Framework\Mail\MailMessageInterface;
+use Magento\Framework\Mail\MessageInterface;
+use Rule\ApiWrapper\Api\Api;
+use Rule\ApiWrapper\Api\Exception\InvalidResourceException;
+use Rule\ApiWrapper\ApiFactory;
 
 /**
  * Class Transaction holds transaction during API calls
@@ -22,7 +24,7 @@ class Transaction
     /**
      * Transaction constructor.
      * @param $apiKey
-     * @throws \Rule\ApiWrapper\Api\Exception\InvalidResourceException
+     * @throws InvalidResourceException
      * @SuppressWarnings(PHPMD.StaticAccess)
      */
     public function __construct($apiKey)
@@ -31,7 +33,15 @@ class Transaction
     }
 
     /**
+     * Send email message via Rule Transactional API
+     *
+     * Note: The 'name' field is only included in from/to arrays when not empty,
+     * as the Rule API requires name to be a non-empty string when present.
+     * This handles cases where Magento's Address::getName() returns null.
+     *
      * @param MessageInterface|MailMessageInterface|EmailMessageInterface $message
+     *
+     * @return void
      * @see https://apidoc.rule.se/#transactions-send-transaction
      */
     public function sendMessage($message)
@@ -39,26 +49,33 @@ class Transaction
         $transaction = [];
 
         if ($message instanceof EmailMessageInterface) {
-            /** @var \Magento\Framework\Mail\EmailMessage $message */
+            /** @var EmailMessage $message */
 
             $from = $message->getFrom();
             $from1 = array_shift($from);
 
             $recipients = $message->getTo();
             foreach ($recipients as $recipient) {
-                /** @var Address $item */
+                /** @var Address $recipient */
+                $recipientName = $recipient->getName();
+                $fromName = $from1->getName();
+                $fromArray = ['email' => $from1->getEmail()];
+
+                if (!empty($fromName)) {
+                    $fromArray['name'] = $fromName;
+                }
+
+                $toArray = ['email' => $recipient->getEmail()];
+                if (!empty($recipientName)) {
+                    $toArray['name'] = $recipientName;
+                }
+
                 $transaction = [
                     'transaction_type' => 'email',
                     'transaction_name' => 'some',
                     'subject' => $message->getSubject(),
-                    'from' => [
-                        'name' => $from1->getName(),
-                        'email' => $from1->getEmail()
-                    ],
-                    'to' => [
-                        'name' => $recipient->getName(),
-                        'email' => $recipient->getEmail()
-                    ],
+                    'from' => $fromArray,
+                    'to' => $toArray,
                     'content' => [
                         'plain' => quoted_printable_decode($message->getBodyText()),
                         'html' => quoted_printable_decode($message->getBodyText())
@@ -77,3 +94,4 @@ class Transaction
         $this->transactionApi->send($transaction);
     }
 }
+
