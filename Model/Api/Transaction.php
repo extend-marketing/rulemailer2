@@ -51,31 +51,30 @@ class Transaction
         if ($message instanceof EmailMessageInterface) {
             /** @var EmailMessage $message */
 
-            $from = $message->getFrom();
-            $from1 = array_shift($from);
+            $sender = $message->getFrom()[0];
+            $senderName = $sender->getName();
+
+            $from = ['email' => $sender->getEmail()];
+            if (!empty($senderName)) {
+                $from['name'] = $senderName;
+            }
 
             $recipients = $message->getTo();
             foreach ($recipients as $recipient) {
                 /** @var Address $recipient */
                 $recipientName = $recipient->getName();
-                $fromName = $from1->getName();
-                $fromArray = ['email' => $from1->getEmail()];
 
-                if (!empty($fromName)) {
-                    $fromArray['name'] = $fromName;
-                }
-
-                $toArray = ['email' => $recipient->getEmail()];
+                $to = ['email' => $recipient->getEmail()];
                 if (!empty($recipientName)) {
-                    $toArray['name'] = $recipientName;
+                    $to['name'] = $recipientName;
                 }
 
                 $transaction = [
                     'transaction_type' => 'email',
                     'transaction_name' => 'some',
                     'subject' => $message->getSubject(),
-                    'from' => $fromArray,
-                    'to' => $toArray,
+                    'from' => $from,
+                    'to' => $to,
                     'content' => [
                         'plain' => quoted_printable_decode($message->getBodyText()),
                         'html' => quoted_printable_decode($message->getBodyText())
@@ -94,4 +93,3 @@ class Transaction
         $this->transactionApi->send($transaction);
     }
 }
-
