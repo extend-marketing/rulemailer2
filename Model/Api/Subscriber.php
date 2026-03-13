@@ -297,21 +297,18 @@ class Subscriber
     }
 
     private function getOrderProducts($quote, $order): array {
-        return count($quote->getAllVisibleItems()) ?
-            $this->helper->getQuoteProducts($quote) :
-            $this->orderData->getOrderProducts($order);
+        $products = $this->orderData->getOrderProducts($order);
+        return count($products) ? $products : $this->helper->getQuoteProducts($quote);
     }
 
     private function getOrderProductsCategories($quote, $order): array {
-        return count($quote->getAllVisibleItems()) ?
-            $this->helper->getQuoteProductCategories($quote) :
-            $this->orderData->getOrderProductCategories($order);
+        $categories = $this->orderData->getOrderProductCategories($order);
+        return count($categories) ? $categories : $this->helper->getQuoteProductCategories($quote);
     }
 
     private function getOrderProductNames($quote, $order): array {
-        return count($quote->getAllVisibleItems()) ?
-            $this->helper->getQuoteProductNames($quote) :
-            $this->orderData->getOrderProductNames($order);
+        $names = $this->orderData->getOrderProductNames($order);
+        return count($names) ? $names : $this->helper->getQuoteProductNames($quote);
     }
 
     /**
