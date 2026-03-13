@@ -288,10 +288,10 @@ class Subscriber
         if (!array_key_exists('Order.Products', $data)) {
             $data['Order.Products'] = $this->orderData->getOrderProducts($order);
         }
-        if (!array_key_exists('Order.Products', $data)) {
+        if (!array_key_exists('Order.Categories', $data)) {
             $data['Order.Categories'] = $this->orderData->getOrderProductCategories($order);
         }
-        if (!array_key_exists('Order.Products', $data)) {
+        if (!array_key_exists('Order.Names', $data)) {
             $data['Order.Names'] = $this->orderData->getOrderProductNames($order);
         }
     }
