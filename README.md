@@ -27,7 +27,7 @@ In the terminal `cd` to the root of your Magento project. Then run:
 ```bash
 bin/magento maintenance:enable
 
-composer require rulecom/rulemailer2
+composer require extend-marketing/rulemailer2
 
 bin/magento module:enable Rule_RuleMailer --clear-static-content
 
